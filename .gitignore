@@ -1,0 +1,45 @@
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Windows temporary files
+~$*
+
+# Virtual machine files
+*.vmem
+*.lck
+*.nvram
+*.vmrs
+*.vswp
+
+# Secrets and credentials
+.env
+*.key
+*.pem
+*.pfx
+*.p12
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Archives / large temporary files
+*.zip
+*.7z
+*.rar
+
+# OS generated files
+System Volume Information/
