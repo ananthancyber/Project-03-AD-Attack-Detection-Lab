@@ -2,20 +2,25 @@
 
 ## 1. Objective
 
-The objective of Day 02 was to configure and validate the Windows 10 client in the Active Directory lab and establish the Windows security auditing required for future attack detection and investigation.
+Day 02 focused on preparing the Windows 10 workstation as a domain-joined endpoint and enabling Windows security telemetry required for Active Directory attack detection and SOC investigation.
 
-The main goals were:
+### Objectives Completed
 
-- Validate the Windows 10 client configuration
-- Verify network connectivity
-- Configure and verify Active Directory DNS
-- Confirm domain membership
-- Authenticate using the domain user `CORP\alice`
-- Enable Windows security auditing
-- Generate authentication and process activity
-- Investigate Windows Security Event IDs 4624, 4625, and 4688
-- Understand Windows Logon IDs and session correlation
-- Correlate authentication activity with process creation
+- Configured Windows 10 client
+- Verified hostname and network configuration
+- Configured Active Directory DNS
+- Verified Active Directory DNS resolution
+- Joined Windows 10 to the `corp.local` domain
+- Logged in using the domain account `CORP\alice`
+- Enabled Windows Security auditing
+- Generated and investigated Windows security events
+- Investigated Event ID `4624` — Successful Logon
+- Investigated Event ID `4625` — Failed Logon
+- Investigated Event ID `4688` — Process Creation
+- Investigated Notepad process creation
+- Investigated PowerShell process creation
+- Investigated Windows Logon IDs
+- Correlated authentication and process events
 
 ---
 
@@ -27,45 +32,53 @@ The main goals were:
 | Domain Controller | `AD-DC` |
 | Windows Client | `WIN10-CLIENT` |
 | Domain User | `CORP\alice` |
-| Client IPv4 | `192.168.159.133` |
-| Network | `192.168.159.0/24` |
-| DNS | Active Directory DNS |
+| IPv4 Address | `192.168.159.133` |
+| Subnet Mask | `255.255.255.0` |
+| Default Gateway | `192.168.159.2` |
 
 ---
 
 ## 3. Windows 10 Client Configuration
 
-The Windows 10 virtual machine was configured as the endpoint workstation for the Active Directory environment.
+The Windows 10 VM was configured as the endpoint workstation for the Active Directory lab.
 
-The client hostname was verified using:
+The hostname was verified using:
 
-    hostname
+```cmd
+hostname
+```
 
 Output:
 
-    WIN10-CLIENT
+```text
+WIN10-CLIENT
+```
 
 The network configuration was verified using:
 
-    ipconfig
+```cmd
+ipconfig
+```
 
-The client was assigned:
+Observed configuration:
 
-    IPv4 Address : 192.168.159.133
-    Subnet Mask  : 255.255.255.0
-    Gateway      : 192.168.159.2
+```text
+IPv4 Address    : 192.168.159.133
+Subnet Mask     : 255.255.255.0
+Default Gateway : 192.168.159.2
+```
 
-The Windows 10 client was configured to use the Active Directory DNS infrastructure.
+The workstation was successfully connected to the lab network.
 
 ### Evidence
 
-![Windows 10 VM Configuration](../screenshots/Day02-01-WIN10-CLIENT-VM-Configuration.png)
+![Windows 10 VM Configuration](../screenshots/Day02/Day02-01-WIN10-CLIENT-VM-Configuration.png)
 
-![Windows 10 Region](../screenshots/Day02-02-Windows10-Region.png)
+![Windows 10 Region](../screenshots/Day02/Day02-02-Windows10-Region.png)
 
-![Windows 10 Client Desktop](../screenshots/Day02-03-Windows10-Client-Desktop.png)
+![Windows 10 Client Desktop](../screenshots/Day02/Day02-03-Windows10-Client-Desktop.png)
 
-![Windows 10 Hostname](../screenshots/Day02-04-Windows10-Hostname-Configured.png)
+![Windows 10 Hostname Configured](../screenshots/Day02/Day02-04-Windows10-Hostname-Configured.png)
 
 ---
 
@@ -73,667 +86,821 @@ The Windows 10 client was configured to use the Active Directory DNS infrastruct
 
 Active Directory depends heavily on DNS.
 
-The Windows 10 client was configured to use the Domain Controller as its DNS server.
+The Windows 10 client was configured to use the Active Directory DNS service so that it could locate and communicate with the Domain Controller and resolve the `corp.local` domain.
 
-DNS resolution was verified using:
-
-    nslookup corp.local
-
-Successful resolution confirmed that the Windows 10 client could locate the Active Directory DNS infrastructure.
+DNS configuration and resolution were verified before proceeding with domain authentication.
 
 ### Why DNS Matters
 
-DNS in an Active Directory environment is used to locate important domain services such as:
+Correct DNS configuration allows the Windows client to:
 
-- Domain Controllers
-- Kerberos services
-- LDAP services
-- Global Catalog services
-- Other Active Directory service records
-
-If the client cannot correctly resolve the Active Directory domain, domain joining and authentication can fail.
+- Locate the Domain Controller
+- Resolve the `corp.local` domain
+- Discover Active Directory services
+- Authenticate domain users
+- Communicate with domain resources
 
 ### Evidence
 
-![AD DNS Configuration](../screenshots/Day02-05-Windows10-AD-DNS-Configured.png)
+![AD DNS Configured](../screenshots/Day02/Day02-05-Windows10-AD-DNS-Configured.png)
 
-![AD DNS Verification](../screenshots/Day02-06-Windows10-AD-DNS-Verification.png)
+![AD DNS Verification](../screenshots/Day02/Day02-06-Windows10-AD-DNS-Verification.png)
 
 ---
 
-## 5. Domain Membership
+## 5. Windows 10 Domain Membership
 
-The Windows 10 client was successfully joined to:
+The Windows 10 workstation was successfully integrated into the Active Directory domain:
 
-    corp.local
+```text
+corp.local
+```
 
 The workstation hostname was:
 
-    WIN10-CLIENT
+```text
+WIN10-CLIENT
+```
 
-The domain relationship was verified from the Windows 10 client.
-
-### Why Domain Membership Matters
-
-Domain membership allows the workstation to use centralized Active Directory authentication and security policies.
-
-Instead of relying only on local accounts, the workstation can authenticate users against the Active Directory domain.
-
-This provides the foundation for centralized:
-
-- Authentication
-- Authorization
-- Group Policy
-- Security auditing
-- User management
+Domain membership allows the Windows workstation to authenticate users against the Active Directory environment.
 
 ### Evidence
 
-![Windows 10 Domain Login](../screenshots/Day02-07-Windows10-Domain-Login.png)
+![Windows 10 Domain Login](../screenshots/Day02/Day02-07-Windows10-Domain-Login.png)
 
-![Windows 10 Domain Network Verification](../screenshots/Day02-08-Windows10-Domain-Network-Verification.png)
+![Windows 10 Domain Network Verification](../screenshots/Day02/Day02-08-Windows10-Domain-Network-Verification.png)
 
 ---
 
 ## 6. Domain User Authentication
 
-The primary domain user used during this lab was:
+The domain account used for the Windows 10 workstation was:
 
-    CORP\alice
+```text
+CORP\alice
+```
 
-After logging into the Windows 10 client, the authenticated identity was verified using:
+The authenticated identity was verified using:
 
-    whoami
+```cmd
+whoami
+```
 
 Output:
 
-    corp\alice
+```text
+corp\alice
+```
 
-This confirmed that Alice was authenticated as a domain user.
+This confirmed that the workstation session was operating under the Active Directory domain account `CORP\alice`.
 
-### Why This Matters
+### SOC Relevance
 
-For SOC investigations, identifying the authenticated user is critical.
+During endpoint investigation, identifying the account responsible for an action is critical.
 
-A security analyst needs to determine:
+A SOC analyst needs to distinguish between local and domain identities.
 
-    Who authenticated?
-    Which account was used?
-    Which session was created?
-    What activity occurred after authentication?
+For example:
 
-This allows endpoint activity to be attributed to a specific user and session.
+```text
+LOCAL\user
+```
+
+and:
+
+```text
+CORP\user
+```
+
+represent different authentication contexts.
 
 ### Evidence
 
-![Normal Domain User Login](../screenshots/Day02-09-Windows10-Normal-User-Login.png)
+![Windows 10 Normal User Login](../screenshots/Day02/Day02-09-Windows10-Normal-User-Login.png)
 
 ---
 
-## 7. Windows Security Audit Policy
+## 7. Windows Security Auditing
 
-Windows Security auditing was enabled to generate the security telemetry required for investigation.
+Windows Security auditing was enabled to generate security telemetry for investigation.
 
-The configured audit policy included security-relevant categories such as:
+Relevant audit areas included:
 
 - Logon
 - Logoff
 - Account Lockout
 - Process Creation
-- Account Management
+- Policy Change
 - Security Group Management
 - User Account Management
-- Policy Change
 
-### Why Audit Policies Matter
+The purpose of enabling auditing is to provide visibility into security-relevant activity occurring on the Windows endpoint.
 
-Windows generates security events based on its configured auditing policies.
+### Basic SOC Telemetry Flow
 
-For a SOC analyst, these events provide the telemetry required to investigate activity on an endpoint.
-
-For example:
-
-    User Authentication
-            ↓
-       Security Event
-            ↓
-       Process Execution
-            ↓
-       Security Event
-            ↓
-       Investigation
-
-Without appropriate auditing, important activity may not be recorded in the Security log.
+```text
+User Activity
+      |
+      v
+Windows Security Auditing
+      |
+      v
+Windows Security Event Log
+      |
+      v
+SOC Investigation
+```
 
 ### Evidence
 
-![Windows 10 Audit Policy](../screenshots/Day02-10-Windows10-Audit-Policy-Enabled.png)
+![Windows 10 Audit Policy Enabled](../screenshots/Day02/Day02-10-Windows10-Audit-Policy-Enabled.png)
 
 ---
 
 ## 8. Event ID 4688 — Process Creation
 
-Windows Security Event ID `4688` represents a new process being created.
+Windows Security Event ID `4688` represents:
 
-The event can provide important information such as:
+```text
+A new process has been created.
+```
 
-- User
-- Domain
-- Logon ID
-- Process name
+This event is highly useful for endpoint investigation.
+
+Important fields can include:
+
+- Subject User
+- Subject Domain
+- New Process Name
 - Process ID
-- Command line
-- Parent process
+- Command Line
+- Parent Process
+- Logon ID
 
-### Why Event ID 4688 Matters
+### SOC Importance
 
-Process creation telemetry allows a SOC analyst to investigate what was executed on a Windows endpoint.
+Process creation telemetry allows analysts to determine what programs were executed on a Windows endpoint.
 
-For example:
+The investigation model is:
 
-    Who executed it?
-            ↓
-    What was executed?
-            ↓
-    What command was used?
-            ↓
-    Which session executed it?
-            ↓
-    What was the parent process?
-
-This makes Event ID 4688 valuable for endpoint detection and threat hunting.
+```text
+User
+  |
+  v
+Process
+  |
+  v
+Command Line
+  |
+  v
+Parent Process
+  |
+  v
+Logon Session
+```
 
 ### Evidence
 
-![Event 4688 Process Creation](../screenshots/Day02-11-Windows10-Event4688-Process-Creation.png)
+![Event 4688 Process Creation](../screenshots/Day02/Day02-11-Windows10-Event4688-Process-Creation.png)
 
 ---
 
 ## 9. Event ID 4625 — Failed Logon
 
-Windows Security Event ID `4625` represents a failed logon.
+Windows Security Event ID `4625` represents:
 
-The event was generated and investigated on the Windows 10 client.
+```text
+An account failed to log on.
+```
 
-The event displayed:
+A failed authentication event was generated and investigated on the Windows 10 client.
 
-    An account failed to log on.
+### SOC Importance
 
-### Why Event ID 4625 Matters
-
-Repeated failed authentication events can indicate:
+Event ID `4625` can help investigate:
 
 - Password guessing
 - Brute-force activity
+- Password spraying
 - Credential misuse
-- Account compromise attempts
-- Automated authentication attempts
-- User mistakes
+- Account compromise
+- User authentication mistakes
 
-A SOC analyst would investigate:
+A single failed logon does not automatically mean an attack occurred.
 
-    Who failed to authenticate?
-    When did it happen?
-    How frequently did it happen?
-    What account was targeted?
-    Was a successful login observed afterward?
+A SOC analyst should investigate:
+
+```text
+Account
++
+Timestamp
++
+Source
++
+Frequency
++
+Number of failures
++
+Related events
+```
 
 ### Evidence
 
-![Event 4625 Failed Logon](../screenshots/Day02-12-Windows10-Event4625-Failed-Logon.png)
+![Event 4625 Failed Logon](../screenshots/Day02/Day02-12-Windows10-Event4625-Failed-Logon.png)
 
 ---
 
 ## 10. Event ID 4688 — Notepad Process Creation
 
-Notepad was launched from the Windows 10 client to generate controlled process activity.
+Notepad was executed to demonstrate Windows process creation auditing.
 
-Windows Security Event ID `4688` recorded the process creation.
+The Event ID `4688` record contained process information associated with the execution.
 
-The event contained information including:
+Important fields included:
 
-    SubjectUserName   : alice
-    SubjectDomainName : CORP
-    NewProcessName    : C:\Windows\System32\notepad.exe
+```text
+SubjectUserName   : alice
+SubjectDomainName : CORP
+NewProcessName    : C:\Windows\System32\notepad.exe
+CommandLine       : notepad.exe
+```
 
-The event also contained the Logon ID associated with the user session.
+The event also contained a `SubjectLogonId`.
 
-This allowed the process to be associated with the authenticated user session.
+This value can be used to associate the process with a specific Windows logon session.
 
 ### Evidence
 
-![Notepad Process Creation XML](../screenshots/Day02-13-Windows10-Event4688-Notepad-Process-Creation-XML.png)
+![Event 4688 Notepad Process Creation XML](../screenshots/Day02/Day02-13-Windows10-Event4688-Notepad-ProcessCreation-XML.png)
 
 ---
 
 ## 11. Event ID 4688 — PowerShell Process Creation
 
-PowerShell was executed on the Windows 10 client to generate additional process telemetry.
+PowerShell execution was also captured through Event ID `4688`.
 
-Windows Security Event ID `4688` recorded the PowerShell process creation.
+The process creation event contained information including:
 
-The event contained information such as:
+```text
+NewProcessName
+ProcessId
+CommandLine
+ParentProcessName
+SubjectLogonId
+```
 
-    NewProcessName : C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
-    CommandLine    : powershell.exe -NoProfile -Command "Get-Date"
+The PowerShell command used during the lab was:
 
-### Why PowerShell Monitoring Matters
+```text
+powershell.exe -NoProfile -Command "Get-Date"
+```
 
-PowerShell is a legitimate Windows administration tool, but it is also frequently used during post-exploitation.
+This demonstrated that Windows process creation auditing can provide visibility into PowerShell execution and command-line activity.
 
-Therefore, SOC analysts pay attention to:
+### Why PowerShell Telemetry Matters
 
-- PowerShell execution
-- Command-line arguments
-- Parent processes
-- User context
-- Logon session
-- Suspicious commands
+PowerShell is widely used for legitimate Windows administration.
 
-The objective here was not to perform a malicious action, but to understand how Windows records PowerShell execution.
+However, attackers also commonly abuse PowerShell during post-exploitation.
+
+Therefore, PowerShell process and command-line telemetry is valuable for SOC investigation.
 
 ### Evidence
 
-![PowerShell Process Creation XML](../screenshots/Day02-14-Windows10-Event4688-PowerShell-Process-Creation-XML.png)
+![Event 4688 PowerShell Process Creation XML](../screenshots/Day02/Day02-14-Windows10-Event4688-PowerShell-ProcessCreation-XML.png)
 
 ---
 
 ## 12. Event ID 4624 — Successful Logon
 
-Windows Security Event ID `4624` represents a successful logon.
+Windows Security Event ID `4624` represents:
 
-A successful authentication event for the domain user was investigated through Event Viewer.
+```text
+An account was successfully logged on.
+```
 
-The event contained information such as:
+A successful authentication event associated with the domain environment was investigated.
 
-    SubjectUserName     : alice
-    SubjectDomainName   : CORP
-    TargetUserName      : Administrator
-    TargetDomainName    : CORP
-    LogonType           : 2
+Important fields included:
 
-The event also contained a Windows Logon ID.
+```text
+TargetUserName
+TargetDomainName
+TargetLogonId
+LogonType
+LogonProcessName
+AuthenticationPackageName
+```
 
-Example:
+The most important field for the correlation performed during this lab was:
 
-    TargetLogonId : 0x5999f
-
-### What Is a Logon ID?
-
-A Windows Logon ID identifies a particular logon session.
-
-It can be used to correlate multiple security events that belong to the same session.
-
-For example:
-
-    4624
-    Successful Logon
-          |
-          | Logon ID = 0x5999f
-          ↓
-    4688
-    Process Creation
-          |
-          | Logon ID = 0x5999f
-          ↓
-    Same Windows Logon Session
+```text
+TargetLogonId
+```
 
 ### Evidence
 
-![Alice Logon ID](../screenshots/Day02-15-Windows10-Event4624-Alice-LogonID-5999f.png)
+![Event 4624 Alice Logon ID](../screenshots/Day02/Day02-15-Windows10-Event4624-Alice-LogonID-5999f.png)
 
 ---
 
-## 13. Understanding Windows Sessions
+## 13. Understanding Windows Logon Sessions
 
-One of the important concepts learned during Day 02 was:
+A Windows logon session represents the security context created when an account authenticates to Windows.
 
-    Same Username ≠ Same Session
-
-A single user can create multiple Windows logon sessions.
-
-For example:
-
-    CORP\alice
-        |
-        +---- Session A
-        |       Logon ID: 0x5999f
-        |       |
-        |       +---- notepad.exe
-        |
-        +---- Session B
-                Logon ID: 0x5C3AE
-                |
-                +---- powershell.exe
-
-If an analyst only searches for the username `alice`, activity from multiple sessions could become mixed together.
-
-The Logon ID provides a more reliable way to correlate activity belonging to the same session.
-
----
-
-## 14. Authentication-to-Process Correlation
-
-The most important investigation performed during Day 02 was correlating authentication activity with process creation.
-
-The successful logon event contained:
-
-    Event ID   : 4624
-    User       : CORP\alice
-    Logon ID   : 0x5999f
-
-The process creation event contained:
-
-    Event ID        : 4688
-    User            : CORP\alice
-    Process         : notepad.exe
-    Logon ID        : 0x5999f
-
-The matching Logon ID provides a correlation between the authentication event and the process creation event.
-
-The investigation chain can therefore be represented as:
-
-    CORP\alice
-         |
-         ↓
-    Event ID 4624
-    Successful Logon
-         |
-         ↓
-    Logon ID: 0x5999f
-         |
-         ↓
-    Event ID 4688
-    Process Creation
-         |
-         ↓
-    notepad.exe
-         |
-         ↓
-    Logon ID: 0x5999f
-
-This demonstrates how a SOC analyst can connect a user authentication event to activity performed during that authenticated session.
-
----
-
-## 15. Why Logon ID Is Important for SOC Investigation
-
-Consider a situation where the same user logs in multiple times.
-
-    CORP\alice
-        |
-        +---- Logon Session 1
-        |       Logon ID: 0x5999f
-        |       |
-        |       +---- notepad.exe
-        |
-        +---- Logon Session 2
-                Logon ID: 0x5C3AE
-                |
-                +---- powershell.exe
-
-Both sessions belong to the same username.
-
-However, they are different Windows sessions.
+A single username can have multiple logon sessions.
 
 Therefore:
 
-    Username alone
-          ↓
-    Not always sufficient
+```text
+Same username != Same session
+```
 
-Whereas:
+For example:
 
-    Username + Logon ID
-          ↓
-    Stronger session correlation
+```text
+CORP\alice
+    |
+    +---- Session A
+    |       Logon ID: 0x5999f
+    |
+    +---- Session B
+            Logon ID: Different Value
+```
 
-This is an important concept when investigating Windows authentication and endpoint activity.
+This is an important SOC investigation concept.
 
----
+When multiple events involve the same username, the analyst should not automatically assume that all events belong to the same authentication session.
 
-## 16. Event Correlation Model
+The analyst should examine:
 
-The investigation performed during Day 02 can be represented as:
-
-                 WINDOWS 10 CLIENT
-                        |
-                        ↓
-                User Authentication
-                        |
-                        ↓
-                 Event ID 4624
-                 Successful Logon
-                        |
-                        ↓
-                    Logon ID
-                    0x5999f
-                        |
-                        ↓
-                 Process Execution
-                        |
-                        ↓
-                 Event ID 4688
-                        |
-                        ↓
-                   notepad.exe
-                        |
-                        ↓
-                 Same Logon ID
-                    0x5999f
-                        |
-                        ↓
-              User-to-Process Attribution
-
-This is the foundation of endpoint detection and investigation.
+- Username
+- Domain
+- Logon ID
+- Timestamp
+- Computer
+- Process
+- Authentication type
+- Source information
 
 ---
 
-## 17. Day 02 Investigation Timeline
+## 14. Why Username Alone Is Not Enough
 
-The complete workflow was:
+Consider two events involving:
 
-    Windows 10 Client
-            ↓
-    Network Configuration
-            ↓
-    AD DNS Configuration
-            ↓
-    DNS Verification
-            ↓
-    Domain Membership
-            ↓
-    CORP\alice Authentication
-            ↓
-    Windows Audit Policy
-            ↓
-    Event ID 4625
-    Failed Authentication
-            ↓
-    Event ID 4624
-    Successful Authentication
-            ↓
-    Logon ID Identified
-            ↓
-    Event ID 4688
-    Process Creation
-            ↓
-    notepad.exe / PowerShell
-            ↓
-    Logon ID Correlation
-            ↓
-    User-to-Process Attribution
+```text
+CORP\alice
+```
 
----
+Event A:
 
-## 18. Key Findings
+```text
+User     : CORP\alice
+Logon ID : 0x5999f
+```
 
-The following findings were established during Day 02:
+Event B:
 
-1. The Windows 10 client was successfully configured for the Active Directory environment.
-2. The client successfully resolved the Active Directory domain through DNS.
-3. The Windows 10 client was successfully joined to `corp.local`.
-4. The domain account `CORP\alice` successfully authenticated on the client.
-5. Windows Security auditing was enabled.
-6. Event ID `4625` recorded failed authentication activity.
-7. Event ID `4624` recorded successful authentication activity.
-8. Event ID `4688` recorded process creation.
-9. Notepad execution was recorded through Event ID `4688`.
-10. PowerShell execution was recorded through Event ID `4688`.
-11. Windows Logon IDs were observed in security events.
-12. Authentication and process activity could be correlated using the Logon ID.
-13. The investigation demonstrated why username-only correlation is insufficient for reliable Windows session tracking.
+```text
+User     : CORP\alice
+Logon ID : Different Value
+```
+
+Both events involve the same user but may belong to different Windows logon sessions.
+
+Therefore:
+
+```text
+Username != Unique Session
+```
+
+The SOC analyst should correlate:
+
+```text
+Username
++
+Domain
++
+Logon ID
++
+Timestamp
++
+Process
+```
+
+This produces a more accurate activity timeline.
 
 ---
 
-## 19. Concepts Learned
+## 15. Logon ID Correlation
+
+One of the key investigations performed during Day 02 was correlating authentication activity with process creation.
+
+The successful logon event contained:
+
+```text
+TargetLogonId : 0x5999f
+```
+
+The Event ID `4688` Notepad process creation event contained:
+
+```text
+SubjectLogonId : 0x5999f
+```
+
+This provides a correlation between the authentication event and the process creation event.
+
+### Correlation
+
+```text
+Event ID 4624
+Successful Logon
+      |
+      | CORP\alice
+      |
+      | Logon ID = 0x5999f
+      |
+      v
+Windows Logon Session
+      |
+      | Same Logon ID
+      |
+      v
+Event ID 4688
+Process Creation
+      |
+      | CORP\alice
+      |
+      | notepad.exe
+      |
+      | Logon ID = 0x5999f
+```
+
+This demonstrates how a SOC analyst can connect process activity to the authentication session that created it.
+
+---
+
+## 16. Authentication-to-Process Investigation
+
+The Day 02 investigation established the following workflow:
+
+```text
+Authentication Event
+        |
+        v
+Identify Account
+        |
+        v
+Identify Logon ID
+        |
+        v
+Find Related Process Creation
+        |
+        v
+Match Logon ID
+        |
+        v
+Identify Process
+        |
+        v
+Investigate Command Line
+        |
+        v
+Investigate Parent Process
+```
+
+This is a foundational Windows endpoint investigation workflow.
+
+---
+
+## 17. Authentication Investigation Workflow
+
+```text
+Authentication Activity
+        |
+        v
+Identify Event
+        |
+        +---- 4624 = Successful Logon
+        |
+        +---- 4625 = Failed Logon
+        |
+        v
+Identify Account
+        |
+        v
+Identify Logon ID
+        |
+        v
+Check Timestamp
+        |
+        v
+Correlate With Other Events
+```
+
+---
+
+## 18. Process Investigation Workflow
+
+```text
+Process Activity
+        |
+        v
+Event ID 4688
+        |
+        v
+Identify User
+        |
+        v
+Identify Process
+        |
+        v
+Identify Command Line
+        |
+        v
+Identify Parent Process
+        |
+        v
+Identify Logon ID
+        |
+        v
+Correlate With Authentication
+```
+
+---
+
+## 19. Day 02 Investigation Timeline
+
+```text
+Windows 10 Client
+        |
+        v
+Network Configuration
+        |
+        v
+AD DNS Configuration
+        |
+        v
+Domain Membership
+        |
+        v
+CORP\alice Authentication
+        |
+        v
+Windows Security Auditing
+        |
+        +---------------------------+
+        |                           |
+        v                           v
+Event ID 4625                 Event ID 4624
+Failed Logon                 Successful Logon
+                                    |
+                                    v
+                                Logon ID
+                                    |
+                                    v
+                                Event ID 4688
+                              Process Creation
+                                    |
+                                    v
+                               notepad.exe
+                                    |
+                                    v
+                            Logon ID Correlation
+```
+
+---
+
+## 20. Key SOC Concepts Learned
+
+### Authentication
+
+Authentication answers:
+
+```text
+Who are you?
+```
+
+The domain identity used in this lab was:
+
+```text
+CORP\alice
+```
+
+### Authorization
+
+Authorization answers:
+
+```text
+What are you allowed to do?
+```
+
+After authentication, Windows determines the permissions and resources available to the account.
+
+### Auditing
+
+Auditing answers:
+
+```text
+What happened?
+```
+
+Windows records security-relevant activity in event logs when the required audit policies are enabled.
 
 ### Event ID 4624
 
-    4624 = Successful Logon
+```text
+Successful Logon
+```
 
 Used to investigate successful authentication.
 
 ### Event ID 4625
 
-    4625 = Failed Logon
+```text
+Failed Logon
+```
 
-Used to investigate failed authentication attempts.
+Used to investigate failed authentication.
 
 ### Event ID 4688
 
-    4688 = Process Creation
+```text
+Process Creation
+```
 
-Used to investigate process execution on Windows endpoints.
+Used to investigate newly created processes.
 
 ### Logon ID
 
-    Logon ID = Identifier for a Windows Logon Session
-
-Used to correlate security events belonging to the same session.
-
-### Logon Type 2
-
-    Logon Type 2 = Interactive Logon
-
-Typically represents a user logging on interactively at the Windows machine.
+A Logon ID identifies a Windows logon session and can be used as a correlation key between related security events.
 
 ---
 
-## 20. SOC Investigation Perspective
+## 21. SOC Investigation Example
 
-A SOC analyst should not investigate Windows events in isolation.
+Suppose a SOC alert reports:
 
-Instead, the analyst should build a chain of activity:
+```text
+Suspicious PowerShell execution detected.
+```
 
-    Who authenticated?
-            ↓
-    Which account was used?
-            ↓
-    Which Logon ID was created?
-            ↓
-    What processes were created?
-            ↓
-    Which process belonged to that session?
-            ↓
-    What command or activity was performed?
+The analyst should investigate:
 
-This transforms individual Windows events into an investigation timeline.
+```text
+Who executed it?
+        |
+        v
+Which machine?
+        |
+        v
+When did it execute?
+        |
+        v
+Which logon session?
+        |
+        v
+What command was executed?
+        |
+        v
+What was the parent process?
+        |
+        v
+What happened before it?
+        |
+        v
+What happened after it?
+```
 
-For example:
+The Day 02 telemetry provides the foundation for answering these questions.
 
-    CORP\alice
-         ↓
-    4624 — Successful Logon
-         ↓
-    Logon ID: 0x5999f
-         ↓
-    4688 — Process Creation
-         ↓
-    notepad.exe
+The investigation chain is:
 
-This is much more useful to a SOC analyst than simply seeing:
-
-    alice logged in
-
----
-
-## 21. Skills Demonstrated
-
-### Active Directory
-
-- Domain membership
-- Domain authentication
-- Active Directory DNS
-- Domain user validation
-- Windows domain client configuration
-
-### Windows Security
-
-- Windows Event Viewer
-- Windows Security Event Logs
-- Audit Policy
-- Event ID 4624
-- Event ID 4625
-- Event ID 4688
-- Logon Type analysis
-- Logon ID analysis
-
-### SOC Investigation
-
-- Authentication investigation
-- Failed login investigation
-- Successful login investigation
-- Process creation analysis
-- User-to-process attribution
-- Event correlation
-- Windows endpoint telemetry analysis
+```text
+User
+  |
+  v
+Authentication
+  |
+  v
+Logon Session
+  |
+  v
+Process
+  |
+  v
+Command Line
+  |
+  v
+Event Correlation
+  |
+  v
+Investigation
+```
 
 ---
 
-## 22. Day 02 Conclusion
+## 22. Evidence Collected
 
-Day 02 established the Windows 10 workstation as a functioning domain-joined endpoint and enabled the security telemetry required for future Active Directory attack detection.
+All Day 02 evidence was stored inside:
 
-The most important lesson was learning how to move from individual Windows events to event correlation.
+```text
+screenshots/Day02/
+```
 
-A SOC analyst should ask:
+The following evidence files were captured:
 
-    Who authenticated?
-           ↓
-    Which session was created?
-           ↓
-    What activity occurred in that session?
-           ↓
-    Which process performed the activity?
-
-The Windows Logon ID provides an important correlation mechanism for connecting authentication events with subsequent endpoint activity.
-
-The Day 02 lab therefore established the foundation for the next stage of the project, where controlled Active Directory attack activity will be generated and investigated through Windows security telemetry.
+```text
+Day02-01-WIN10-CLIENT-VM-Configuration.png
+Day02-02-Windows10-Region.png
+Day02-03-Windows10-Client-Desktop.png
+Day02-04-Windows10-Hostname-Configured.png
+Day02-05-Windows10-AD-DNS-Configured.png
+Day02-06-Windows10-AD-DNS-Verification.png
+Day02-07-Windows10-Domain-Login.png
+Day02-08-Windows10-Domain-Network-Verification.png
+Day02-09-Windows10-Normal-User-Login.png
+Day02-10-Windows10-Audit-Policy-Enabled.png
+Day02-11-Windows10-Event4688-Process-Creation.png
+Day02-12-Windows10-Event4625-Failed-Logon.png
+Day02-13-Windows10-Event4688-Notepad-ProcessCreation-XML.png
+Day02-14-Windows10-Event4688-PowerShell-ProcessCreation-XML.png
+Day02-15-Windows10-Event4624-Alice-LogonID-5999f.png
+```
 
 ---
 
-## 23. Day 02 Status
+## 23. Key Findings
 
-**STATUS: COMPLETED**
+1. The Windows 10 client was successfully configured as the endpoint workstation.
+2. The hostname was verified as `WIN10-CLIENT`.
+3. The client network configuration was verified.
+4. Active Directory DNS configuration was verified.
+5. The Windows 10 workstation was joined to `corp.local`.
+6. The domain account `CORP\alice` successfully authenticated.
+7. Windows Security auditing was enabled.
+8. Event ID `4624` was observed and investigated.
+9. Event ID `4625` was observed and investigated.
+10. Event ID `4688` was observed and investigated.
+11. Notepad process creation was investigated.
+12. PowerShell process creation was investigated.
+13. PowerShell command-line telemetry was observed.
+14. Windows Logon IDs were examined as session identifiers.
+15. Authentication and process creation were correlated using Logon ID.
+16. The investigation demonstrated why username-only correlation is insufficient.
 
-### Evidence Collected
+---
 
-- Windows 10 VM configuration
-- Windows 10 network configuration
-- Active Directory DNS configuration
-- DNS verification
-- Domain membership
-- Domain user authentication
-- Windows audit policy configuration
-- Event ID 4688 process creation
-- Event ID 4625 failed logon
-- Event ID 4688 Notepad process creation
-- Event ID 4688 PowerShell process creation
-- Event ID 4624 successful logon
-- Windows Logon ID investigation
-- Authentication-to-process correlation
+## 24. Day 02 Completion Checklist
 
-### Next Stage
+- [x] Windows 10 client configuration
+- [x] Hostname verification
+- [x] Network verification
+- [x] Active Directory DNS configuration
+- [x] DNS verification
+- [x] Domain membership
+- [x] Domain user authentication
+- [x] Windows Security auditing
+- [x] Event ID 4624 investigation
+- [x] Event ID 4625 investigation
+- [x] Event ID 4688 investigation
+- [x] Notepad process investigation
+- [x] PowerShell process investigation
+- [x] Logon ID investigation
+- [x] Windows logon-session concept
+- [x] Authentication-to-process correlation
+- [x] Evidence screenshots captured
+- [x] Evidence naming standardized
+- [x] Documentation completed
 
-**Day 03 — Active Directory Attack Simulation & Detection**
+---
+
+## 25. Final Conclusion
+
+Day 02 established the Windows 10 workstation as a functional domain-joined endpoint and configured the security telemetry required for future Active Directory attack detection.
+
+The day progressed from endpoint configuration to domain authentication, security auditing, Windows event analysis, and event correlation.
+
+The most important SOC concept learned was that security events should not be investigated in isolation.
+
+A SOC analyst should connect related events:
+
+```text
+4624 — Successful Authentication
+              |
+              | Logon ID
+              v
+       Windows Logon Session
+              |
+              | Logon ID
+              v
+4688 — Process Creation
+              |
+              v
+       Process Activity
+```
+
+This creates the foundation for the attack simulation and detection activities planned for the next stages of the Active Directory Attack & Detection Lab.
+
+# Day 02 Status: COMPLETE
