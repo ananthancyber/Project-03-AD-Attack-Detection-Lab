@@ -391,7 +391,7 @@ The output confirmed:
 
 ### Evidence
 
-![LabAdmin Local Identity](../screenshots\Day05\Day05-14-Windows10-labAdmin-Local-Identity-Verification.png)
+![LabAdmin Local Identity](../screenshots/Day05/Day05-14-Windows10-labAdmin-Local-Identity-Verification.png)
 
 ---
 
@@ -411,7 +411,7 @@ The built-in Administrator account was disabled while `LabAdmin` remained enable
 
 ### Evidence
 
-![Built-in Administrator Identity](../screenshots\Day05\Day05-15-Windows10-Builtin-Administrator-Identity.png)
+![Built-in Administrator Identity](../screenshots/Day05/Day05-15-Windows10-Builtin-Administrator-Identity.png)
 
 ---
 
@@ -453,7 +453,7 @@ This demonstrates that both domain-level and local-level identities can obtain a
 
 ### Evidence
 
-![Local Administrator Baseline](../screenshots\Day05\Day05-17-Windows10-Local-Administrators-Baseline.png)
+![Local Administrator Baseline](../screenshots/Day05/Day05-17-Windows10-Local-Administrators-Baseline.png)
 
 ---
 
@@ -473,7 +473,7 @@ This establishes LabAdmin as an intentional local privileged account in the lab.
 
 ### Evidence
 
-![LabAdmin Privilege Baseline](../screenshots\Day05\Day05-18-Windows10-LabAdmin-Privilege-Baseline.png)
+![LabAdmin Privilege Baseline](../screenshots/Day05/Day05-18-Windows10-LabAdmin-Privilege-Baseline.png)
 
 ---
 
@@ -563,7 +563,7 @@ The baseline showed the expected domain-user structure and provided context for 
 
 ### Evidence
 
-![Domain Users Membership](../screenshots\Day05\Day05-23-Domain-Users-Membership-Baseline.png)
+![Domain Users Membership](../screenshots/Day05/Day05-23-Domain-Users-Membership-Baseline.png)
 
 ---
 
@@ -631,7 +631,7 @@ as a member.
 
 ### Evidence
 
-![Group Policy Creator Owners](../screenshots\Day05\Day05-26-Group-Policy-Creator-Owners-Baseline.png)
+![Group Policy Creator Owners](../screenshots/Day05/Day05-26-Group-Policy-Creator-Owners-Baseline.png)
 
 ---
 
@@ -707,7 +707,7 @@ The output confirmed:
 
 ### Evidence
 
-![Applied Group Policy - Computer](../screenshots\Day05\Day05-29-Applied-Group-Policy-Baseline-User.png)
+![Applied Group Policy - Computer](../screenshots/Day05/Day05-29-Applied-Group-Policy-Baseline-User.png)
 
 ---
 
@@ -723,7 +723,7 @@ and showed the user's Active Directory security-group memberships.
 
 ### Evidence
 
-![Applied Group Policy - User](../screenshots\Day05\Day05-29-Applied-Group-Policy-Baseline-User.png)
+![Applied Group Policy - User](../screenshots/Day05/Day05-29-Applied-Group-Policy-Baseline-User.png)
 
 ---
 
