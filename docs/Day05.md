@@ -391,7 +391,7 @@ The output confirmed:
 
 ### Evidence
 
-![LabAdmin Local Identity](../screenshots/Day05/Day05-14-Windows10-LabAdmin-Local-Identity-Verification.png)
+![LabAdmin Local Identity](../screenshots\Day05\Day05-14-Windows10-labAdmin-Local-Identity-Verification.png)
 
 ---
 
@@ -707,7 +707,7 @@ The output confirmed:
 
 ### Evidence
 
-![Applied Group Policy - Computer](../screenshots\Day05\Day05-29-Applied-Group-Policy-Baseline-Computer.png)
+![Applied Group Policy - Computer](../screenshots\Day05\Day05-29-Applied-Group-Policy-Baseline-User.png)
 
 ---
 
@@ -1099,3 +1099,4 @@ The key principle established today is:
 - Domain Trust
 - Secure Channel Validation
 
+**Next Phase:** Continue with the next Active Directory attack and detection scenario using the Day 05 baseline as the reference point.
