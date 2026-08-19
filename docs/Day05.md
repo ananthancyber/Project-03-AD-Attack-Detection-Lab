@@ -707,7 +707,7 @@ The output confirmed:
 
 ### Evidence
 
-![Applied Group Policy - Computer](../screenshots/Day05\Day05-29-Applied-Group-Policy-Baseline-Computer.png)
+![Applied Group Policy - Computer](../screenshots\Day05\Day05-29-Applied-Group-Policy-Baseline-Computer.png)
 
 ---
 
