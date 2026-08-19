@@ -368,7 +368,7 @@ The output confirmed:
 
 ### Evidence
 
-![LabAdmin Account Enumeration](../screenshots/Day05/Day05-13-Windows10-LabAdmin-Account-Enumeration.png)
+![LabAdmin Account Enumeration](../screenshots/Day05/Day05-13-Windows10-labAdmin-Account-Enumeration.png)
 
 ---
 
