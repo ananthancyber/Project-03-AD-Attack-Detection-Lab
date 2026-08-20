@@ -1,259 +1,231 @@
 # Active Directory Attack & Detection Lab
 
-A self-built Active Directory enterprise environment — domain controller, domain-joined Windows client, Sysmon endpoint telemetry, and Wazuh SIEM ingestion — documented day by day with commands, verification output, and screenshots.
+> A documented, isolated Active Directory lab that builds identity infrastructure and endpoint telemetry, then validates a controlled Kerberoasting detection and SOC investigation workflow.
 
-**Status: 🚧 In Development — Day 04 of a multi-phase build**
-Active Directory, the domain-joined endpoint, Sysmon telemetry, and Wazuh SIEM ingestion are built and verified. No attack simulation has been performed yet — Kali Linux is provisioned as the intended attacker VM but has not been used. Detection rules and MITRE ATT&CK mapping have not started.
+## Overview
 
----
+This repository documents an end-to-end Active Directory security lab built in VMware Workstation. It begins with a Windows Server 2022 domain controller and a domain-joined Windows 10 endpoint, adds Windows Security auditing, Sysmon, and Wazuh endpoint monitoring, and then uses the resulting telemetry to investigate a controlled Kerberoasting simulation.
 
-## Project Overview
+The work is evidence-led: the repository contains daily build documentation, 122 screenshots, a dedicated attack narrative, a detection specification, and a SOC investigation report. The completed case study focuses on the path from an SPN-backed service account and a Kerberos TGS request to Windows Security Event ID `4769`, contextual detection, baseline comparison, and an analyst verdict.
 
-Most beginner AD labs stop at "installed a domain controller." This project goes further: build a small enterprise-style Active Directory domain, join a Windows 10 endpoint, generate real Windows authentication and process telemetry, deploy Sysmon for endpoint-level visibility, and forward that telemetry into a Wazuh SIEM — all before a single attack is run.
+## Objectives
 
-The reasoning behind that order: you can't meaningfully investigate an attack against telemetry you haven't first proven works. Each phase so far has centered on the same core SOC skill — correlating Windows Security Event ID `4624` (successful logon) with subsequent process activity using the **Logon ID** as the correlation key, first through the native Windows Event Log, then through Sysmon, then through Wazuh's centralized dashboard.
+- Build and validate an isolated Active Directory environment with a Windows endpoint.
+- Establish authentication, process, identity, privilege, policy, and Kerberos baselines before evaluating attack activity.
+- Centralize and review `WIN10-CLIENT` Sysmon telemetry in Wazuh.
+- Generate a controlled AD credential-access scenario and capture its Windows telemetry.
+- Develop and validate detection logic that uses context and baseline deviation rather than a single indicator.
+- Document the investigative process, result, MITRE mapping, and defensive response considerations.
 
-The next phase of the project introduces controlled attacks from the Kali Linux VM against this environment, with detection rules and MITRE ATT&CK mapping built against the telemetry pipeline established here.
+## What was implemented
 
----
+- Provisioned `AD-DC`, a Windows Server 2022 domain controller for `corp.local` (`CORP`), with AD DS and AD-integrated DNS.
+- Built an OU structure for users, groups, workstations, and servers; created lab users and security groups; and joined `WIN10-CLIENT` to the domain.
+- Enabled and investigated Windows authentication and process telemetry: Security Events `4624`, `4625`, and `4688`, plus Sysmon Event `1`.
+- Deployed Sysmon and enrolled `WIN10-CLIENT` in Wazuh as agent `002`; validated endpoint-to-dashboard process telemetry.
+- Established an identity, privilege, policy, Kerberos-ticket, trust, and secure-channel baseline on the Windows client.
+- Performed a controlled Kerberoasting simulation from Kali Linux against the dedicated, non-administrative `svc_sql` account.
+- Validated `DET-AD-001`, a documented PowerShell-based detection specification for suspicious successful Kerberos TGS requests using RC4 (`0x17`) and supporting context.
+- Produced a SOC investigation report that correlates requester, target service, SPN, source IP, encryption type, request success, and the observed encryption baseline.
 
-## Lab Environment
-
-| Component | Role | Platform | Details |
-|---|---|---|---|
-| `AD-DC` | Domain Controller | Windows Server 2022 Standard Evaluation | `192.168.159.10`, domain `corp.local` (NetBIOS `CORP`) |
-| `WIN10-CLIENT` | Domain-joined endpoint | Windows 10 | `192.168.159.133`, Sysmon-instrumented, Wazuh Agent `002` |
-| Wazuh Manager | SIEM | Ubuntu (existing infra, reused) | `192.168.159.130` |
-| Attacker VM | Planned attack source | Kali Linux | Not yet used |
-| Host | Hypervisor | Windows 11 + VMware Workstation 17 | NAT network |
-
----
-
-## Lab Architecture
+## Lab architecture
 
 ```text
-Windows 11 Host
-       |
-VMware Workstation
-       |
-   +---+------------------------------+
-   |                                  |
-   v                                  v
-Windows Server 2022                Windows 10
-AD-DC (Domain Controller)          WIN10-CLIENT
-corp.local / CORP                  domain-joined, Sysmon-instrumented
-   |                                  |
-   v                                  v
-Active Directory                   Sysmon + Windows Security Logs
-Lab-Users, Lab-Groups,                   |
-Lab-Workstations, Lab-Servers            v
-                                    Wazuh Agent (002)
-                                          |
-                                          v
-                                    Wazuh Manager (Ubuntu, 192.168.159.130)
-                                          |
-                                          v
-                                    Wazuh Dashboard
-
-Kali Linux (Attacker) — provisioned, not yet used for attack simulation
+Windows 11 host / VMware Workstation 17 (NAT)
+│
+├── AD-DC — Windows Server 2022
+│   ├── `corp.local` / `CORP`
+│   ├── Active Directory Domain Services + AD-integrated DNS
+│   └── Windows Security telemetry, including Event 4769
+│
+├── WIN10-CLIENT — Windows 10 (`192.168.159.133`)
+│   ├── Domain joined to `corp.local`
+│   ├── Windows Security auditing + Sysmon
+│   └── Wazuh agent `002`
+│          │
+│          └── Wazuh Manager / Dashboard — Ubuntu (`192.168.159.130`)
+│
+└── Kali Linux (`192.168.159.129`)
+    └── Controlled Kerberoasting simulation
 ```
 
----
+`AD-DC` uses `192.168.159.10`. The Wazuh evidence in this repository demonstrates monitoring of `WIN10-CLIENT`; the Kerberoasting detection queries were validated against the Domain Controller's Windows Security log. No custom Wazuh detection-rule file is included.
 
-## Technology Stack
+## Technologies and evidence
 
-- **Identity / AD:** Windows Server 2022, Active Directory Domain Services, AD-integrated DNS
-- **Endpoint:** Windows 10, Sysmon, Windows Security Auditing
-- **SIEM / Telemetry:** Wazuh 4.14.6 (Manager + Agent)
-- **Attack tooling (provisioned, unused):** Kali Linux
-- **Virtualization:** VMware Workstation 17 (NAT networking)
-- **Documentation:** Markdown, Git/GitHub
+| Area | Technologies / implementation evidence |
+| --- | --- |
+| Identity infrastructure | Windows Server 2022, AD DS, AD-integrated DNS, `corp.local` / `CORP` |
+| Endpoint | Windows 10, Windows Security auditing, Sysmon |
+| SIEM monitoring | Wazuh 4.14.6 Manager and Wazuh Agent `002` on `WIN10-CLIENT` |
+| Attack simulation | Kali Linux, Impacket `GetUserSPNs`, controlled SPN-backed service account |
+| Detection and investigation | PowerShell `Get-WinEvent`, Event `4769`, RC4 (`0x17`) analysis, SPN/service/source correlation |
+| Virtualization | Windows 11 host, VMware Workstation 17, NAT networking |
+| Documentation | Markdown, Git/GitHub, 122 captured screenshots |
 
----
-
-## What's Actually Built
-
-### Day 00 — Infrastructure Foundation
-Windows Server 2022 VM provisioned (2 vCPU, 4 GB RAM, 80 GB disk), installed, renamed to `AD-DC`, static IPv4 configured, gateway and external connectivity verified via `ping`. Repository and documentation workflow established.
-
-### Day 01 — Active Directory Foundation
-AD DS role installed, server promoted to the first Domain Controller of a new forest (`corp.local` / `CORP`), AD-integrated DNS deployed and verified. Custom OU structure (`Lab-Users`, `Lab-Groups`, `Lab-Workstations`, `Lab-Servers`) created. Two domain users (`alice`, `bob`) and two security groups (`SOC-Analysts`, `IT-Admins`) created and membership verified. `WIN10-CLIENT` computer object joined to the domain. Full baseline independently re-verified with `Get-ADUser`, `Get-ADGroupMember`, `Get-ADComputer`, `Get-ADOrganizationalUnit`.
-
-### Day 02 — Windows 10 Domain Client & Security Auditing
-`WIN10-CLIENT` domain-joined and authenticated as `CORP\alice`. Windows Security auditing enabled. Investigated Event ID `4624` (successful logon), `4625` (failed logon), and `4688` (process creation) for both Notepad and PowerShell execution. Correlated a `4624` logon event to a subsequent `4688` process-creation event using the shared **Logon ID** (`0x5999f`) — establishing that username alone is an insufficient correlation key.
-
-### Day 03 — Sysmon Deployment & Process Telemetry
-Sysmon installed and verified as running on `WIN10-CLIENT`. Investigated Sysmon Event ID `1` (process creation) for Notepad, then correlated it to a Windows Security `4624` logon event for `CORP\alice` using Logon ID. Performed process-tree analysis on a `cmd.exe` chain and established a known-good process-creation baseline for later comparison.
-
-### Day 04 — Wazuh SIEM Integration & Cross-Source Correlation
-Verified network connectivity from `WIN10-CLIENT` to the Wazuh Manager, deployed the Wazuh Agent, and enrolled it as Agent `002`. Validated the Sysmon XML configuration under Wazuh. Confirmed the full telemetry pipeline (`WIN10-CLIENT → Sysmon → Wazuh Agent → Wazuh Manager → Dashboard`) by generating Notepad and `cmd.exe /c whoami` process-creation events and viewing them in the Wazuh Dashboard. Reconstructed the process tree `powershell.exe → cmd.exe → whoami.exe` and correlated it to Windows Security Event `4624` for `CORP\Administrator` using the shared Logon ID `0x1C3C04`.
-
-### Not built yet (planned)
-- Controlled attack simulation from the Kali Linux VM (Kerberoasting, password spraying, AS-REP roasting, lateral movement, privilege escalation)
-- Custom Wazuh detection/correlation rules
-- MITRE ATT&CK technique mapping
-- SOC-style investigation write-ups / incident reports
-
----
-
-## Attack & Detection Workflow (Target State)
-
-The environment and telemetry pipeline built through Day 04 exist to support this workflow, which has not yet been exercised end-to-end with a real attack:
+## Build and monitoring workflow
 
 ```text
-Attack Simulation (Kali Linux) — not yet run
-        ↓
-Windows Endpoint (WIN10-CLIENT)
-        ↓
-Security / Sysmon Telemetry
-        ↓
-Wazuh Agent → Wazuh Manager → Dashboard
-        ↓
-Event Correlation (Logon ID)
-        ↓
-Detection — not yet built
-        ↓
-Investigation
+AD foundation → domain-joined endpoint → Windows Security auditing
+    → Sysmon process telemetry → Wazuh endpoint ingestion
+    → identity / privilege / Kerberos baselines
+    → controlled Kerberoasting simulation
+    → Event 4769 detection and contextual correlation
+    → SOC investigation and response recommendations
 ```
 
-What's already proven, using benign test activity (Notepad, `whoami`) instead of real attacks: the telemetry generates correctly, reaches Wazuh, and can be correlated across sources using the Logon ID.
+Before the attack exercise, the project established known-good telemetry and identity context. For example, it correlates Security Event `4624` with later process activity by Logon ID, examines Security Event `4688` and Sysmon Event `1`, and reconstructs the benign process chain `powershell.exe → cmd.exe → whoami.exe`.
 
----
+## Active Directory and endpoint foundations
 
-## Evidence
+The domain controller was promoted as the first writable DC for `corp.local`, with DNS and Global Catalog enabled. The repository verifies the custom OUs `Lab-Users`, `Lab-Groups`, `Lab-Workstations`, and `Lab-Servers`, along with users `alice` and `bob`, the `SOC-Analysts` and `IT-Admins` groups, and the `WIN10-CLIENT` computer object.
 
-### Active Directory Setup
+Day 05 expands the baseline from the endpoint perspective: it documents domain and privileged-group membership, local administrators, the `LabAdmin` local account, account policy, applied GPOs, active sessions, Kerberos tickets, domain trusts, and secure-channel health. In the captured policy baseline, the minimum password length is 7 characters and the lockout threshold is `Never`; these are lab observations, not recommended production settings.
 
-![AD Organizational Structure](screenshots/Day01/Day01-09-AD-Organizational-Structure.png)
+![Active Directory OU structure](screenshots/Day01/Day01-09-AD-Organizational-Structure.png)
 
-*Custom OU structure (`Lab-Users`, `Lab-Groups`, `Lab-Workstations`, `Lab-Servers`) confirmed via PowerShell.*
+## Telemetry and Wazuh validation
 
-### Endpoint Domain Join & Authentication
+| Source | What the repository demonstrates |
+| --- | --- |
+| Windows Security `4624` | Successful-logon analysis and Logon ID correlation |
+| Windows Security `4625` | Failed-logon investigation |
+| Windows Security `4688` | Process-creation investigation for Notepad and PowerShell |
+| Sysmon Event `1` | Process creation and parent-child process analysis |
+| Wazuh | Ingestion of `WIN10-CLIENT` Sysmon telemetry and dashboard review |
 
-![Windows 10 Domain Login](screenshots/Day02/Day02-07-Windows10-Domain-Login.png)
+![Wazuh dashboard process-creation evidence](screenshots/Day04/Day04-12-Wazuh-Dashboard-Cmd-ProcessCreation.png)
 
-*`WIN10-CLIENT` joined to `corp.local` and authenticated as `CORP\alice`.*
+## Controlled Kerberoasting case study
 
-### Authentication-to-Process Correlation (Windows Security Logs)
+The completed attack simulation is intentionally scoped to an isolated lab. A dedicated normal domain account, `CORP\svc_sql`, was created and configured with the SPN `MSSQLSvc/AD-DC.corp.local:1433`. From Kali Linux, the low-privileged account `alice` used Impacket `GetUserSPNs` to enumerate SPNs and request a service ticket. The returned ticket material was not cracked.
 
-![Event 4624 Alice Logon ID](screenshots/Day02/Day02-15-Windows10-Event4624-Alice-LogonID-5999f.png)
+| Field | Observed lab value |
+| --- | --- |
+| MITRE ATT&CK | Credential Access — `T1558.003` Kerberoasting |
+| Requester | `alice@CORP.LOCAL` |
+| Target service account | `svc_sql` |
+| SPN | `MSSQLSvc/AD-DC.corp.local:1433` |
+| Source | Kali Linux, `192.168.159.129` |
+| Primary telemetry | Windows Security Event `4769` on `AD-DC` |
+| Request outcome | Successful (`Failure Code: 0x0`) |
+| Encryption indicator | RC4 / `0x17` |
 
-*Event ID `4624` for `CORP\alice`, Logon ID `0x5999f` — later matched against a `4688` process-creation event to link a user to a specific process.*
+![Kerberos Event 4769 correlation evidence](screenshots/Day06/Day06-10-Kerberoasting-Correlation-Evidence.png)
 
-### Sysmon Process-Tree Analysis
+## Detection engineering: `DET-AD-001`
 
-![Sysmon Process Tree](screenshots/Day03/Day03-11-Windows10-Sysmon-Cmd-ProcessTree.png)
+[`detections/Kerberoasting-4769.md`](detections/Kerberoasting-4769.md) defines **Suspicious Kerberos TGS Request — Potential Kerberoasting**. It is a validated lab detection specification, not an automated Wazuh correlation rule.
 
-*Sysmon-based parent-child process relationship analysis, forming the baseline used for later anomaly comparison.*
-
-### Wazuh Ingestion of Sysmon Telemetry
-
-![Wazuh Dashboard CMD Process Creation](screenshots/Day04/Day04-12-Wazuh-Dashboard-Cmd-ProcessCreation.png)
-
-*`cmd.exe /c whoami` process-creation event, generated on `WIN10-CLIENT` and confirmed in the Wazuh Dashboard — validating the full endpoint-to-SIEM telemetry pipeline.*
-
-### Cross-Source Logon ID Correlation
-
-![Security 4624 Administrator Logon Correlation](screenshots/Day04/Day04-16-Windows10-Security-4624-Administrator-Logon-Correlation.png)
-
-*Windows Security Event `4624` (Logon ID `0x1C3C04`, `CORP\Administrator`) matched against the same Logon ID in Sysmon process telemetry — linking an authentication session to the process activity it generated.*
-
----
-
-## Detection & Investigation Concepts Demonstrated
-
-- **Event ID `4624` / `4625`** — successful and failed logon investigation
-- **Event ID `4688`** (Windows Security) and **Event ID `1`** (Sysmon) — process creation from two different telemetry sources
-- **Logon ID correlation** — the core technique used throughout: matching a Logon ID between an authentication event and later process events, because username alone can match multiple unrelated sessions
-- **Process-tree / parent-child analysis** — reconstructing execution chains (e.g. `powershell.exe → cmd.exe → whoami.exe`) rather than evaluating a process in isolation
-- **Baseline establishment** — capturing known-good process behavior before any attack activity exists, so future anomalies have something to be compared against
-- **Cross-source correlation** — matching the same Logon ID across native Windows Security logs, Sysmon, and the centralized Wazuh Dashboard
-
-No MITRE ATT&CK mapping is included yet — no attack has been simulated, so there is nothing to map.
-
----
-
-## Repository Structure
+The validated PowerShell logic looks for successful Security Event `4769` records with RC4 (`0x17`) encryption. It is an investigation signal, not a standalone verdict. High confidence in the lab came from correlating:
 
 ```text
-Project-03-AD-Attack-Detection-Lab/
+successful Event 4769
+  + RC4 / 0x17
+  + SPN-backed service account
+  + unusual requester and source
+  + encryption-baseline deviation
+  = high-confidence Kerberoasting indicator
+```
+
+The detection documentation distinguishes a known-target validation query for `svc_sql` from a generalized query that does not hard-code the service account. It proposes future production tuning such as requester/service/source baselines and ticket-volume analysis.
+
+### Baseline result
+
+For the observed sample of 50 Event `4769` records, the repository recorded:
+
+| Ticket encryption type | Count |
+| --- | ---: |
+| AES-256 / `0x12` | 49 |
+| RC4 / `0x17` | 1 |
+
+This makes RC4 anomalous in this lab sample. It does **not** mean every RC4 ticket is malicious; the supporting documentation explicitly discusses legitimate legacy use and false-positive review.
+
+## Investigation outcome
+
+[`reports/Kerberoasting-Investigation.md`](reports/Kerberoasting-Investigation.md) documents the SOC-style assessment: alert triage, Event `4769` analysis, requester and service-account identification, SPN validation, source-IP review, encryption analysis, baseline comparison, attack correlation, MITRE mapping, severity assessment, and defensive recommendations.
+
+The report concludes **Confirmed — Controlled Lab Simulation** with high confidence because the ticket request, SPN-backed target, source, requester, RC4 indicator, successful request, rare baseline occurrence, and known simulation align.
+
+## Evidence highlights
+
+| Stage | Evidence |
+| --- | --- |
+| AD structure | [`Day01-09-AD-Organizational-Structure.png`](screenshots/Day01/Day01-09-AD-Organizational-Structure.png) |
+| Endpoint domain authentication | [`Day02-07-Windows10-Domain-Login.png`](screenshots/Day02/Day02-07-Windows10-Domain-Login.png) |
+| Sysmon process-tree baseline | [`Day03-11-Windows10-Sysmon-Cmd-ProcessTree.png`](screenshots/Day03/Day03-11-Windows10-Sysmon-Cmd-ProcessTree.png) |
+| Wazuh process telemetry | [`Day04-12-Wazuh-Dashboard-Cmd-ProcessCreation.png`](screenshots/Day04/Day04-12-Wazuh-Dashboard-Cmd-ProcessCreation.png) |
+| AD security baseline | [`Day05-32-Kerberos-Ticket-Baseline.png`](screenshots/Day05/Day05-32-Kerberos-Ticket-Baseline.png) |
+| Kerberoasting request | [`Day06-06-Kerberoasting-TGS-Request.png`](screenshots/Day06/Day06-06-Kerberoasting-TGS-Request.png) |
+| Windows evidence | [`Day06-07-Kerberos-4769-Attack-Evidence.png`](screenshots/Day06/Day06-07-Kerberos-4769-Attack-Evidence.png) |
+| Detection correlation | [`Day06-10-Kerberoasting-Correlation-Evidence.png`](screenshots/Day06/Day06-10-Kerberoasting-Correlation-Evidence.png) |
+
+## Repository guide
+
+```text
+.
 ├── README.md
 ├── docs/
-│   ├── Day00.md    # Server provisioning & network setup
-│   ├── Day01.md    # AD domain, OUs, users, groups, workstation join
-│   ├── Day02.md    # Domain client join, Windows Security auditing
-│   ├── Day03.md    # Sysmon deployment & process telemetry
-│   └── Day04.md    # Wazuh SIEM integration & cross-source correlation
+│   ├── Day00.md … Day06.md
+├── attacks/
+│   └── Kerberoasting.md
+├── detections/
+│   └── Kerberoasting-4769.md
+├── reports/
+│   └── Kerberoasting-Investigation.md
 └── screenshots/
-    ├── Day00/      # 10 screenshots
-    ├── Day01/      # 23 screenshots
-    ├── Day02/      # 15 screenshots
-    ├── Day03/      # 12 screenshots
-    └── Day04/      # 17 screenshots
+    └── Day00/ … Day06/
 ```
 
-77 screenshots are currently captured across five phases, following a consistent `DayXX-Number-Description.png` naming convention. Folders for attack simulation, detection rules, architecture diagrams, and reports (`attacks/`, `detections/`, `architecture/`, `diagrams/`, `reports/`, `scripts/`) are planned but not yet created — they'll be added when that work actually starts, rather than committed empty in advance.
+## Skills demonstrated
 
----
+- Active Directory administration: AD DS, DNS, OUs, users, groups, workstation domain join, and PowerShell validation.
+- Endpoint and SIEM operations: Windows audit events, Sysmon, Wazuh agent enrollment, telemetry validation, and dashboard inspection.
+- Security analysis: Logon ID correlation, process-tree analysis, baseline creation, Kerberos ticket review, and false-positive reasoning.
+- Detection engineering: Event `4769` field analysis, contextual correlation, and environment-specific tuning.
+- SOC investigation: triage, source/requester/service/SPN correlation, MITRE ATT&CK mapping, severity rationale, and response recommendations.
+- Safe adversary emulation: a controlled Kerberoasting exercise using a low-privileged account and dedicated service account, without credential cracking.
 
 ## Documentation
 
-Every step below is backed by a command (or GUI action), its output, and a screenshot — full detail lives in `docs/`:
+- [Day 00 — Project initialization and server preparation](docs/Day00.md)
+- [Day 01 — Active Directory foundation and identity lab](docs/Day01.md)
+- [Day 02 — Windows client and Security auditing](docs/Day02.md)
+- [Day 03 — Sysmon deployment and process telemetry](docs/Day03.md)
+- [Day 04 — Wazuh SIEM integration and cross-source correlation](docs/Day04.md)
+- [Day 05 — Active Directory identity, privilege, and security baseline](docs/Day05.md)
+- [Day 06 — Kerberoasting simulation and detection engineering](docs/Day06.md)
+- [Attack simulation](attacks/Kerberoasting.md) · [Detection specification](detections/Kerberoasting-4769.md) · [Investigation report](reports/Kerberoasting-Investigation.md)
 
-- [`docs/Day00.md`](docs/Day00.md) — Windows Server provisioning and network setup
-- [`docs/Day01.md`](docs/Day01.md) — Active Directory domain, OU, identity, and workstation build-out
-- [`docs/Day02.md`](docs/Day02.md) — Domain client join and Windows Security auditing
-- [`docs/Day03.md`](docs/Day03.md) — Sysmon deployment and process telemetry
-- [`docs/Day04.md`](docs/Day04.md) — Wazuh SIEM integration and cross-source correlation
+## Reviewing or reproducing the documented workflow
 
----
+This repository is documentation and evidence, not a deployable application: it contains no installation script, infrastructure-as-code, Wazuh rule file, container configuration, or package manifest.
 
-## Skills Demonstrated
+1. Verify the AD, client, Sysmon, and Wazuh monitoring prerequisites in [Day 00–Day 05 documentation](docs/Day05.md).
+2. Review the controlled service-account, SPN, and Kali-host prerequisites in [the attack narrative](attacks/Kerberoasting.md).
+3. In an authorized isolated lab only, perform the documented simulation and inspect the Domain Controller's Security Event `4769` records.
+4. Validate the PowerShell Event `4769` queries in [the detection specification](detections/Kerberoasting-4769.md), then investigate requester, service, source, encryption type, request result, and baseline context.
 
-**Active Directory / Windows Server**
-Domain Controller deployment, AD-integrated DNS, OU design, user/group management, PowerShell-based verification (`Get-ADUser`, `Get-ADGroupMember`, `Get-ADComputer`, `Get-ADOrganizationalUnit`).
+Verify the required configuration from the project documentation before attempting to reproduce the environment. The repository does not provide a production deployment procedure.
 
-**Endpoint Monitoring**
-Sysmon deployment and service verification, Windows Security auditing configuration, process-creation telemetry (Event `4688`, Sysmon Event `1`).
+## Future improvements
 
-**SOC Investigation Methodology**
-Logon ID correlation, process-tree / parent-child analysis, authentication-to-process correlation, baseline establishment.
+The following are documented as future work and are not claimed as complete:
 
-**SIEM Operations**
-Wazuh Agent deployment and enrollment, Sysmon configuration validation in Wazuh, cross-source event correlation via the Wazuh Dashboard.
+- Additional controlled AD attack scenarios, such as password spraying, AS-REP roasting, lateral movement, and privilege escalation.
+- Additional detection content and automated SIEM correlation rules.
+- Broader MITRE ATT&CK coverage based on future simulations.
+- Expanded endpoint-to-domain-controller telemetry correlation and detection tuning.
 
-**Lab Engineering**
-VMware Workstation VM provisioning, static IP/network configuration, multi-VM domain environment design.
+## Responsible-use disclaimer
 
----
+This project was developed for educational and authorized security testing in an isolated lab environment. The Kerberoasting activity was a controlled simulation using a dedicated service account; the resulting ticket material was not cracked. Do not use these techniques against systems or accounts without explicit authorization.
 
-## Roadmap
+## License
 
-### Completed
-- Active Directory domain, OUs, users, groups (Day 00–01)
-- Domain-joined Windows 10 endpoint with Windows Security auditing (Day 02)
-- Sysmon deployment and endpoint process telemetry (Day 03)
-- Wazuh SIEM integration and cross-source Logon ID correlation (Day 04)
-
-### Currently Working On
-- Preparing the Kali Linux attacker VM for controlled attack simulation
-
-### Planned
-- Controlled attack simulation (Kerberoasting, password spraying, AS-REP roasting, lateral movement, privilege escalation)
-- Custom Wazuh detection/correlation rules
-- MITRE ATT&CK technique mapping
-- SOC-style investigation write-ups
-
----
-
-## Why This Project Matters
-
-SOC and Blue Team work is fundamentally about connecting authentication activity to endpoint behavior — not reading isolated alerts. Every phase of this lab has been built around that principle: proving that a Logon ID can reliably link a Windows logon session to the processes it spawned, first in the native Event Log, then in Sysmon, then in a centralized SIEM. That's the same correlation logic used to investigate lateral movement, credential misuse, and post-exploitation activity in a real environment — the attacks planned for the next phase will be investigated using the exact telemetry pipeline validated here.
-
----
+No license file is present in this repository.
 
 ## Author
 
-**Ananthan D**
-B.Tech Information Technology, University College of Engineering, Kariavattom
+**Ananthan D**  
 [GitHub](https://github.com/ananthancyber)
