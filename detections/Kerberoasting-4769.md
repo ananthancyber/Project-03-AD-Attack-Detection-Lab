@@ -554,7 +554,7 @@ Compare against:
 
 **T1558.003 — Kerberoasting**
 
-MITRE's current detection strategy for Kerberoasting includes anomalous Event 4769 TGS requests, RC4 `0x17`, unusual service-ticket volume, and deviations from normal service-account usage. citeturn0search0turn0search1
+MITRE's current detection strategy for Kerberoasting includes anomalous Event 4769 TGS requests, RC4 `0x17`, unusual service-ticket volume, and deviations from normal service-account usage. 
 
 ---
 
