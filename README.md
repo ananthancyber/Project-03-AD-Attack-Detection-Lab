@@ -51,7 +51,7 @@ Windows 11 host / VMware Workstation 17 (NAT)
     └── Kerberoasting, AS-REP Roasting, and NTLM authentication simulations
 ```
 
-`AD-DC` uses `192.168.159.10`. The Wazuh evidence in this repository demonstrates Sysmon/process-telemetry monitoring of `WIN10-CLIENT` (Days 03–04). **All three attack detections (Kerberoasting, NTLM, AS-REP) query the Windows Security event log directly via PowerShell, not through Wazuh** — there is no custom Wazuh correlation rule file, and Wazuh is not part of the detection path for any of the three scenarios. That gap is intentional to disclose rather than paper over; see Limitations.
+`AD-DC` uses `192.168.159.10`. The Wazuh evidence in this repository demonstrates Sysmon/process-telemetry monitoring of `WIN10-CLIENT` (Days 03–04). **All three attack detections (Kerberoasting, NTLM, AS-REP) query the Windows Security event log directly via PowerShell, not through Wazuh** — there is no custom Wazuh correlation rule file, and Wazuh is not part of the detection path for any of the three scenarios. That gap is intentional to disclose rather than paper over.
 
 ## Technologies and evidence
 
