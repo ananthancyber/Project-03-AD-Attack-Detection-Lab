@@ -807,6 +807,3 @@ Evidence → MITRE ATT&CK Mapping → SOC Reports → Detection Coverage
 
 ---
 
-## Project Repository
-
-[View the complete Project 03 repository](https://github.com/ananthancyber/Project-03-AD-Attack-Detection-Lab)
