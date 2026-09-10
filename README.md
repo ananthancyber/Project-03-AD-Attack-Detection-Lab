@@ -373,9 +373,6 @@ The controlled misconfiguration was removed:
 - Attack-path discovery
 - Remediation validation
 
-### MITRE ATT&CK
-
-**T1078 — Valid Accounts / Identity-based privilege analysis**
 
 ### Documentation
 
@@ -429,7 +426,7 @@ The alert represents a **successful remote authentication investigation trigger*
 | AS-REP Roasting | `T1558.004` | `4768` | Pre-Authentication Type `0` | Validated |
 | Pass-the-Hash | `T1550.002` | `4624` + `4776` | Wazuh Rule `92652` + authentication context | Validated |
 | DCSync | `T1003.006` | `4662` | Replication-rights analysis + Rule `100005` logic validation | Validated |
-| BloodHound | `T1078` | AD identity data | Attack-path and privilege analysis | Validated |
+| BloodHound |  | AD identity data | Attack-path and privilege analysis | Validated |
 | SMB lateral authentication | `T1021.002` | `4624` | Wazuh Rule `92657` + remote authentication context | Validated |
 
 For the complete project-wide matrix, see:
