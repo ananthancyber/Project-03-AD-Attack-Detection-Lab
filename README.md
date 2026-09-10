@@ -7,6 +7,87 @@
 [![MITRE ATT%26CK](https://img.shields.io/badge/MITRE%20ATT%26CK-Mapped-red)](https://attack.mitre.org/)
 [![Status](https://img.shields.io/badge/Status-Completed%20Day%2000--12-success)](https://github.com/ananthancyber/Project-03-AD-Attack-Detection-Lab)
 
+## Contents
+
+- [Active Directory Attack \& Detection Lab](#active-directory-attack--detection-lab)
+  - [Contents](#contents)
+  - [Overview](#overview)
+  - [Project Objectives](#project-objectives)
+  - [Overall Architecture](#overall-architecture)
+    - [Environment](#environment)
+    - [Active Directory](#active-directory)
+  - [Architecture Flow](#architecture-flow)
+- [Project Timeline](#project-timeline)
+  - [Foundation — Days 00 to 05](#foundation--days-00-to-05)
+  - [Attack \& Detection — Days 06 to 12](#attack--detection--days-06-to-12)
+- [Security Scenarios](#security-scenarios)
+  - [1. Kerberoasting — Day 06](#1-kerberoasting--day-06)
+    - [Detection Focus](#detection-focus)
+    - [MITRE ATT\&CK](#mitre-attck)
+    - [Documentation](#documentation)
+  - [2. Unexpected-Source NTLM Authentication — Day 07](#2-unexpected-source-ntlm-authentication--day-07)
+    - [Detection Focus](#detection-focus-1)
+    - [MITRE ATT\&CK](#mitre-attck-1)
+    - [Documentation](#documentation-1)
+  - [3. AS-REP Roasting — Day 08](#3-as-rep-roasting--day-08)
+    - [Detection Focus](#detection-focus-2)
+    - [MITRE ATT\&CK](#mitre-attck-2)
+    - [Documentation](#documentation-2)
+  - [4. Pass-the-Hash — Day 09](#4-pass-the-hash--day-09)
+    - [Detection Focus](#detection-focus-3)
+    - [MITRE ATT\&CK](#mitre-attck-3)
+    - [Documentation](#documentation-3)
+  - [5. DCSync — Day 10](#5-dcsync--day-10)
+    - [Detection Focus](#detection-focus-4)
+    - [MITRE ATT\&CK](#mitre-attck-4)
+    - [Documentation](#documentation-4)
+  - [6. BloodHound Attack-Path Analysis — Day 11](#6-bloodhound-attack-path-analysis--day-11)
+    - [Remediation Validation](#remediation-validation)
+    - [Analysis Focus](#analysis-focus)
+    - [Documentation](#documentation-5)
+  - [7. SMB Lateral Authentication — Day 12](#7-smb-lateral-authentication--day-12)
+    - [Detection Focus](#detection-focus-5)
+    - [MITRE ATT\&CK](#mitre-attck-5)
+    - [Documentation](#documentation-6)
+- [Detection Coverage](#detection-coverage)
+- [Telemetry Architecture](#telemetry-architecture)
+  - [Windows Security Events](#windows-security-events)
+  - [Sysmon](#sysmon)
+  - [Wazuh](#wazuh)
+- [SOC Investigation Methodology](#soc-investigation-methodology)
+    - [1. Establish the Baseline](#1-establish-the-baseline)
+    - [2. Generate Controlled Activity](#2-generate-controlled-activity)
+    - [3. Collect Telemetry](#3-collect-telemetry)
+    - [4. Detect](#4-detect)
+    - [5. Correlate](#5-correlate)
+    - [6. Investigate](#6-investigate)
+    - [7. Produce an Analyst Verdict](#7-produce-an-analyst-verdict)
+- [Evidence-Driven Documentation](#evidence-driven-documentation)
+  - [Attack Documentation](#attack-documentation)
+  - [Detection Documentation](#detection-documentation)
+  - [Investigation Reports](#investigation-reports)
+- [Evidence Highlights](#evidence-highlights)
+    - [Active Directory Structure](#active-directory-structure)
+    - [Sysmon Process Telemetry](#sysmon-process-telemetry)
+    - [Wazuh Process Monitoring](#wazuh-process-monitoring)
+    - [Kerberoasting](#kerberoasting)
+    - [NTLM Unexpected Source](#ntlm-unexpected-source)
+    - [AS-REP Roasting](#as-rep-roasting)
+    - [Pass-the-Hash](#pass-the-hash)
+    - [DCSync](#dcsync)
+    - [BloodHound Attack Path](#bloodhound-attack-path)
+    - [Lateral Authentication](#lateral-authentication)
+- [Repository Structure](#repository-structure)
+- [Skills Demonstrated](#skills-demonstrated)
+  - [Active Directory](#active-directory-1)
+  - [Blue Team / SOC](#blue-team--soc)
+  - [Detection Engineering](#detection-engineering)
+  - [Offensive Security Understanding](#offensive-security-understanding)
+  - [Investigation \& Reporting](#investigation--reporting)
+- [MITRE ATT\&CK Coverage](#mitre-attck-coverage)
+- [Key Project Takeaways](#key-project-takeaways)
+- [Project Workflow](#project-workflow)
+
 ## Overview
 
 This project is an end-to-end **Active Directory Attack & Detection Lab** built in an isolated VMware environment.
@@ -426,7 +507,7 @@ The alert represents a **successful remote authentication investigation trigger*
 | AS-REP Roasting | `T1558.004` | `4768` | Pre-Authentication Type `0` | Validated |
 | Pass-the-Hash | `T1550.002` | `4624` + `4776` | Wazuh Rule `92652` + authentication context | Validated |
 | DCSync | `T1003.006` | `4662` | Replication-rights analysis + Rule `100005` logic validation | Validated |
-| BloodHound |  | AD identity data | Attack-path and privilege analysis | Validated |
+| BloodHound | `T1069.002` / `T1087.002` / `T1078` | AD identity data | Attack-path and privilege analysis | Validated |
 | SMB lateral authentication | `T1021.002` | `4624` | Wazuh Rule `92657` + remote authentication context | Validated |
 
 For the complete project-wide matrix, see:
@@ -746,6 +827,8 @@ The project documentation covers **Day 00 through Day 12**.
 | Valid Accounts | `T1078` | Day 07 |
 | Pass the Hash | `T1550.002` | Day 09 |
 | DCSync | `T1003.006` | Day 10 |
+| Permission Groups Discovery: Domain Groups | `T1069.002` | Day 11 |
+| Account Discovery: Domain Account | `T1087.002` | Day 11 |
 | SMB/Windows Admin Shares | `T1021.002` | Day 12 |
 
 The project combines these techniques with Windows authentication, Kerberos, directory-service, endpoint, and identity telemetry to demonstrate how offensive activity can be investigated from a defensive perspective.
